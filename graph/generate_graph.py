@@ -34,9 +34,9 @@ class Graph:
         if num_of_edge <= 0 or num_of_point <= 0:
             return False, "点或边的数量都要大于0"
 
-        # 如果是无环图, 边的数量有上限
+        # 边的数量有上限
         if (self.directed and num_of_edge > num_of_point*(num_of_point-1)) or (
-                not self.directed and num_of_point > num_of_point*(num_of_point-1) // 2):
+                not self.directed and num_of_edge > num_of_point*(num_of_point-1) // 2):
             return False, "当图形类型为: %s, 点的个数为: %s时, 边的个数为: %s不符合要求" % (
                 self.type_str, num_of_point, num_of_point)
 
@@ -97,7 +97,7 @@ class Graph:
             list of edges, edge is a tuple formed by start point and end point
         """
 
-        # 获取点和边的个数病校验, 如果用户没有提供边的个数, 则根据图的类型随机生成边的个数
+        # 获取点和边的个数并校验, 如果用户没有提供边的个数, 则根据图的类型随机生成边的个数
         num_of_edge = kwargs.pop("num_of_edge", 0)
         if num_of_edge != 0:
             flag, msg = self.check_num_of_edge_and_point(num_of_point, num_of_edge)
@@ -117,10 +117,10 @@ class Graph:
         Returns:
             a two-dimensional array m, with m[i][j] set to 1 if there is an edge from i to j otherwise 0.
         """
-        ad_matrix = [[1 if i == j else 0 for i in range(self.num_of_point)] for j in range(self.num_of_point)]
+        ad_matrix = [[0 for i in range(self.num_of_point)] for j in range(self.num_of_point)]
         for start, end in self.edges:
             ad_matrix[start][end] = 1
-            # 无环图
+            # 无向图
             if not self.directed:
                 ad_matrix[end][start] = 1
 
@@ -137,8 +137,92 @@ class Graph:
         ad_list = [[] for i in range(self.num_of_point)]
         for start, end in self.edges:
             ad_list[start].append(end)
-            # 无环图
-            ad_list[end].append(start)
+            # 无向图
+            if not self.directed:
+                ad_list[end].append(start)
+
+        return ad_list
+
+    def printGraph(self):
+        print("\n".join(",".join(str(num) for num in row) for row in self.adjacency_matrix))
+
+class WeightedGraph(Graph):
+    def __init__(self, num_of_point, edges=None, directed=0, weighted=0):
+        self.directed = directed
+        self.weighted = weighted
+        if self.directed and self.weighted:
+            self.type_str = "有向加权图"
+        elif self.directed and not self.weighted:
+            self.type_str = "有向无权图"
+        elif not self.directed and self.weighted:
+            self.type_str = "无向加权图"
+        else:
+            self.type_str = "无向无权图"
+        self.num_of_point = num_of_point
+        if edges is not None and edges:
+            self.edges = edges
+        else:
+            self.edges = self.generate_edges(self.num_of_point)
+
+    def generate_edges(self, num_of_point=5, **kwargs):
+        """
+        generate random edges according to num of point.
+
+        Args:
+            num_of_point
+            kwargs: num of edge could be set in kwargs
+
+        Raises:
+            ValidationError: If num_of_point or num_of_point is not legitimate
+
+        Returns:
+            list of edges, edge is a tuple formed by start point and end point
+        """
+
+        # 获取点和边的个数并校验, 如果用户没有提供边的个数, 则根据图的类型随机生成边的个数
+        num_of_edge = kwargs.pop("num_of_edge", 0)
+        if num_of_edge != 0:
+            flag, msg = self.check_num_of_edge_and_point(num_of_point, num_of_edge)
+            if not flag:
+                raise ValidationError(msg)
+        else:
+            num_of_edge = self.generate_num_of_edge(num_of_point)
+
+        possible_edges = self.generate_possible_edges(num_of_point)
+        choosed_edges = random.sample(possible_edges, num_of_edge)
+        return [(edge, random.randint(1, num_of_point)) for edge in choosed_edges]
+ 
+    @property
+    def adjacency_matrix(self):
+        """
+        represent graph as adjacency matrix.
+
+        Returns:
+            a two-dimensional array m, with m[i][j] set to 1 if there is an edge from i to j otherwise 0.
+        """
+        ad_matrix = [[0 for i in range(self.num_of_point)] for j in range(self.num_of_point)]
+        for (start, end), length in self.edges:
+            ad_matrix[start][end] = length
+            # 无向图
+            if not self.directed:
+                ad_matrix[end][start] = length
+
+        return ad_matrix
+
+    @property
+    def adjacency_list(self):
+        """
+        represent graph as adjacency list
+
+        Returns:
+             a two-dimensional array m, with m[i] contains all points connected by point i
+        """
+        ad_list = [[] for i in range(self.num_of_point)]
+        for (start, end), length in self.edges:
+            ad_list[start].append((end, length))
+            # 无向图
+            if not self.directed:
+                ad_list[end].append((start, length))
 
         return ad_list
 
@@ -148,15 +232,10 @@ if __name__ == "__main__":
     print("Edges of graph: ", g.edges)
     print("Represent as Adjacency matrix: ", g.adjacency_matrix)
     print("Represent as Adjacency list: ", g.adjacency_list)
+    g.printGraph()
 
-
-
-
-
-
-
-
-
-
-
-
+    g = WeightedGraph(num_of_point=5, directed=0, weighted=1)
+    print("Edges of graph: ", g.edges)
+    print("Represent as Adjacency matrix: ", g.adjacency_matrix)
+    print("Represent as Adjacency list: ", g.adjacency_list)
+    g.printGraph()
