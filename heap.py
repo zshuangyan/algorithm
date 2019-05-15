@@ -1,3 +1,6 @@
+class HeapEmptyError(Exception):
+    pass
+
 class Heap:
     def __init__(self):
         # 设置占位符方便计算
@@ -24,6 +27,8 @@ class Heap:
         self.data[pos] = tmp
 
     def pop(self):
+        if self.len == 1:
+            raise HeapEmptyError("heap is empty")
         pos = 1
         pop_value = self.data[pos]
         r_value = self.data.pop()
