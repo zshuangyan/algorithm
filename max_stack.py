@@ -18,14 +18,15 @@ class Stack:
         if self.len == 0:
             raise StackEmptyError("stack is empty")
             
-        top_value = self.data[self.len - 1]
-             
-        
+        return self.max 
         
     def push(self, value):
         if self.len == self.cap:
             raise StackFullError("stack is full")
-        if value > self.max:
+        elif self.len == 1:
+            self.data.append(value)
+            self.max = value
+        elif value > self.max:
             t = 2*value - self.max
             self.data.append(t)
             self.max = value
@@ -41,9 +42,21 @@ class Stack:
         if top_value <= self.max:
             return top_value
         else:
+            max_value = self.max
+            self.max = 2*self.max - top_value
+            return max_value
             
             
-        return self.data.pop()
+s = Stack(3)
+for i in [1,3,4]:
+    s.push(i)
+    print("push: %s to stack, max value in stack: %s" % (i, s.max_value()))
+for i in range(2):
+    value = s.pop()
+    print("value popped: %s, max value in stack: %s" % (value, s.max_value()))
+    
+            
+            
         
         
 
