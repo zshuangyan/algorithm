@@ -23,7 +23,7 @@ class Stack:
     def push(self, value):
         if self.len == self.cap:
             raise StackFullError("stack is full")
-        elif self.len == 1:
+        elif self.len == 0:
             self.data.append(value)
             self.max = value
         elif value > self.max:
