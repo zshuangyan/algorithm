@@ -13,8 +13,8 @@ def num_to_string(num: int) -> string:
     while num:
         value, num = num % decimal, num // decimal
         char = int_to_char(value)
-        result.insert(0, char)
-    return "".join(result)
+        result.append(char)
+    return "".join(result[::-1])
 
 
 def string_to_num(s: string) -> int:
